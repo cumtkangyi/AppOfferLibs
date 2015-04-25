@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>    
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="more">More</string>
+    <string name="app_recommend">App recommend</string>
+    <string name="start_game">Start Game</string>
+    <string name="start_game_title">Press [Start Gmae] to open game</string>
+    <string name="start_game_msg">Have fun.</string>
+    
+    <string name="exit_prompt">Exit prompt</string>
+    <string name="exit_msg">Are you sure exit the current application?</string>
+    
+</resources>

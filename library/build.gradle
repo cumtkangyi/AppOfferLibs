@@ -1,0 +1,136 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        minSdkVersion 8
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    compile files('libs/AppOffer_2.4.1.jar')
+    compile files('libs/libammsdk.jar')
+}
+
+task clearAar(type: Delete) {
+    delete 'build/outputs/aar/library-release.arr'
+}
+
+task releaseAar(type: Copy) {
+    from('build/outputs/aar/')
+    into('build/outputs/')
+    include('library-release.aar')
+    rename ('library-release.aar', 'AppOfferLib.aar')
+}
+
+releaseAar.dependsOn(clearAar, build)
+
+// ext is a gradle closure allowing the declaration of global properties
+ext {
+    PUBLISH_GROUP_ID = 'com.leo.common.libs'
+    PUBLISH_ARTIFACT_ID = 'wapsladibs'
+    PUBLISH_VERSION = android.defaultConfig.versionName
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        def deployPath = file(getProperty('aar.deployPath'))
+        repository(url: "file://${deployPath.absolutePath}")
+        pom.project {
+            groupId project.PUBLISH_GROUP_ID
+            artifactId project.PUBLISH_ARTIFACT_ID
+            version project.PUBLISH_VERSION
+        }
+    }
+}
+
+def siteUrl = 'https://github.com/openproject/LessCode'                        // #CONFIG# // project homepage
+def gitUrl = 'https://github.com/openproject/LessCode.git'                     // #CONFIG# // project git
+group = "com.jayfeng.lesscode"                                                 // #CONFIG# // Maven Group ID for the artifact (pageckage name is ok)
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                name 'Less Code For Android'                                   // #CONFIG# // project title
+                url siteUrl
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'leo.kang'                                           // #CONFIG# // your user id (you can write your nickname)
+                        name 'cumtkangyi'                                       // #CONFIG# // your user name
+                        email 'cumtkangyi@gmail.com'                               // #CONFIG# // your email
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "lesscode-core"                                                 // #CONFIG# project name in jcenter
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
